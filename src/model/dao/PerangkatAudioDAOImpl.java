@@ -25,15 +25,19 @@ public class PerangkatAudioDAOImpl implements InterfaceDAOAudio {
         }
     }
 
-    @Override
+ @Override
     public void update(Equalizer eq) {
-        String sql = "UPDATE preset_audio SET hz_115=?, hz_250=?, hz_450=?, hz_13k=? WHERE id=?";
+        String sql = "UPDATE preset_audio SET nama_preset=?, hz_115=?, hz_250=?, hz_450=?, hz_13k=? WHERE id=?";
+        
         try (Connection conn = connector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setFloat(1, eq.getHz115());
-            ps.setFloat(2, eq.getHz250());
-            ps.setFloat(3, eq.getHz450());
-            ps.setFloat(4, eq.getHz13k());
-            ps.setInt(5, eq.getId());
+  
+            ps.setString(1, eq.getNamaPreset());
+            ps.setFloat(2, eq.getHz115());
+            ps.setFloat(3, eq.getHz250());
+            ps.setFloat(4, eq.getHz450());
+            ps.setFloat(5, eq.getHz13k());
+            ps.setInt(6, eq.getId()); 
+            
             ps.executeUpdate();
         } catch (SQLException e) { 
             e.printStackTrace(); 
