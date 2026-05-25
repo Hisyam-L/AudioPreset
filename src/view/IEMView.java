@@ -1,6 +1,7 @@
 package view;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class IEMView extends JFrame {
@@ -9,13 +10,16 @@ public class IEMView extends JFrame {
     private JSlider slider115, slider250, slider450, slider13k;
     private JButton btnSave, btnUpdate, btnDelete, btnPlay, btnStop, btnChooseFile;
     private JLabel lblCurrentFile; 
-    
-    // TAMBAHAN 1: Deklarasi ComboBox untuk Tipe Perangkat
     private JComboBox<String> comboTipePerangkat; 
+    
+    // TAMBAHAN BARU: Komponen JTable untuk visualisasi data READ & JButton Clear Form
+    private JTable tabelPreset;
+    private DefaultTableModel tableModel;
+    private JButton btnClear;
 
     public IEMView() {
         setTitle("Java MVC Audio Equalizer - OOP Edition");
-        setSize(650, 450); // Diperlebar sedikit agar muat form baru
+        setSize(950, 450); // Diperlebar agar muat ruang JTable di kanan
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
@@ -54,24 +58,32 @@ public class IEMView extends JFrame {
         eqPanel.add(createSliderPanel("13 kHz", slider13k));
         add(eqPanel, BorderLayout.CENTER);
 
+        // --- PANEL KANAN (TAMBAHAN): JTable Visualisasi Read Data CRUD ---
+        String[] kolom = {"ID", "Nama Preset", "115Hz", "250Hz", "450Hz", "13kHz"};
+        tableModel = new DefaultTableModel(kolom, 0);
+        tabelPreset = new JTable(tableModel);
+        JScrollPane scrollTable = new JScrollPane(tabelPreset);
+        scrollTable.setPreferredSize(new Dimension(350, 0));
+        add(scrollTable, BorderLayout.EAST);
+
         // --- Panel Bawah (CRUD Controls) ---
         JPanel bottomPanel = new JPanel(new FlowLayout());
         txtPresetName = new JTextField(10);
-        
-        // TAMBAHAN 2: Inisialisasi ComboBox Tipe Perangkat
         comboTipePerangkat = new JComboBox<>(new String[]{"IEM", "Wireless TWS"});
         
         btnSave = new JButton("Save Preset");
         btnUpdate = new JButton("Update");
         btnDelete = new JButton("Delete");
+        btnClear = new JButton("Clear"); // Inisialisasi tombol clear
         
         bottomPanel.add(new JLabel("Nama:"));
         bottomPanel.add(txtPresetName);
-        bottomPanel.add(new JLabel("Tipe:")); // Label Tipe Perangkat
-        bottomPanel.add(comboTipePerangkat);  // ComboBox Tipe Perangkat masuk ke panel
+        bottomPanel.add(new JLabel("Tipe:")); 
+        bottomPanel.add(comboTipePerangkat);  
         bottomPanel.add(btnSave);
         bottomPanel.add(btnUpdate);
         bottomPanel.add(btnDelete);
+        bottomPanel.add(btnClear); // Memasukkan tombol clear ke UI
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
@@ -90,6 +102,7 @@ public class IEMView extends JFrame {
         return panel;
     }
 
+    // Getters lama
     public JButton getBtnChooseFile() { return btnChooseFile; }
     public JLabel getLblCurrentFile() { return lblCurrentFile; }
     public JSlider getSlider115() { return slider115; }
@@ -103,7 +116,10 @@ public class IEMView extends JFrame {
     public JButton getBtnDelete() { return btnDelete; }
     public JButton getBtnPlay() { return btnPlay; }
     public JButton getBtnStop() { return btnStop; }
-    
-    // TAMBAHAN 3: Getter untuk ComboBox Tipe Perangkat
     public JComboBox<String> getComboTipePerangkat() { return comboTipePerangkat; }
+    
+    // Getters Baru untuk mendukung aksi Table dan Clear Form
+    public JTable getTabelPreset() { return tabelPreset; }
+    public DefaultTableModel getTableModel() { return tableModel; }
+    public JButton getBtnClear() { return btnClear; }
 }

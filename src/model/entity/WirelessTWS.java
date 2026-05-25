@@ -1,8 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model.entity;
+
+import javax.swing.JOptionPane;
 
 public class WirelessTWS extends PerangkatAudio {
     private String bluetoothCodec;
@@ -14,12 +12,17 @@ public class WirelessTWS extends PerangkatAudio {
 
     @Override
     public void playAudio(String filePath) {
-        System.out.println("Streaming via TWS " + merk + " (Codec: " + bluetoothCodec + ")...");
+        // Menggunakan getMerk() karena variabel di parent sudah di-enkapsulasi menjadi private
+        String pesan = "Streaming via TWS " + getMerk() + " (Codec: " + bluetoothCodec + ")...";
+        System.out.println(pesan);
+        
+        // AGAR TERLIHAT DI UI: Munculkan pesan pop-up informasi perangkat di GUI
+        JOptionPane.showMessageDialog(null, pesan, "Playback Info (Wireless TWS)", JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override
     public void applyEqualizer(Equalizer eq) {
-        this.currentEq = eq;
+        setEq(eq);
         System.out.println("Menerapkan EQ dengan kompensasi delay Bluetooth.");
     }
 }

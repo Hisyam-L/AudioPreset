@@ -1,12 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model.entity;
 
 public abstract class PerangkatAudio {
-    protected String merk;
-    protected Equalizer currentEq;
+
+    // ENKAPSULASI: Diubah dari protected menjadi private agar data tidak bocor langsung ke child class
+    private String merk;
+    private Equalizer currentEq;
 
     // Polymorphism: Method Overloading (Konstruktor)
     public PerangkatAudio() {
@@ -20,7 +18,23 @@ public abstract class PerangkatAudio {
 
     // Abstract methods untuk di-override child class
     public abstract void playAudio(String filePath);
+
     public abstract void applyEqualizer(Equalizer eq);
-    
-    public Equalizer getEq() { return currentEq; }
+
+    // Getter & Setter Tambahan untuk mendukung Enkapsulasi penuh
+    public String getMerk() {
+        return merk;
+    }
+
+    public void setMerk(String merk) {
+        this.merk = merk;
+    }
+
+    public Equalizer getEq() {
+        return currentEq;
+    }
+
+    public void setEq(Equalizer currentEq) {
+        this.currentEq = currentEq;
+    }
 }

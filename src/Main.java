@@ -11,7 +11,7 @@ import view.IEMView;
 import controller.ControllerAudioPreset;
 import javax.swing.SwingUtilities;
 
-public class main {
+public class Main {
     public static void main(String[] args) {
         // Memastikan GUI berjalan di Event Dispatch Thread (Bagian dari Multithreading standar Swing)
         SwingUtilities.invokeLater(() -> {

@@ -20,11 +20,9 @@ public class ControllerAudioPreset {
     private final InterfaceDAOAudio daoAudio;
     private List<Equalizer> daftarPreset;
     
-    // Variabel Pelacak Database
     private int activePresetId = -1;
     private boolean isUpdatingUI = false;
 
-    // Variabel Audio & DSP
     private Thread audioThread;
     private boolean isPlaying = false;
     private String currentAudioFilePath = null;
@@ -35,29 +33,34 @@ public class ControllerAudioPreset {
     public ControllerAudioPreset(IEMView halamanUtama) {
         this.halamanUtama = halamanUtama;
         this.daoAudio = new PerangkatAudioDAOImpl();
-        initListeners(); // Memasang tombol ke fungsi-fungsi di bawah
+        initListeners(); 
         showAllPreset();
     }
 
-    // 1. FUNGSI UNTUK MENAMPILKAN DATA KE COMBOBOX (Menggantikan tabel)
+    // 1. FUNGSI READ: Mengisi data ComboBox DAN JTable visualisasi GUI secara bersamaan
     public void showAllPreset() {
         isUpdatingUI = true;
         halamanUtama.getComboPreset().removeAllItems();
+        halamanUtama.getTableModel().setRowCount(0); // Bersihkan sisa tabel lama
         
         daftarPreset = daoAudio.getAll();
         for (Equalizer eq : daftarPreset) {
             halamanUtama.getComboPreset().addItem(eq.getNamaPreset());
+            
+            // Masukkan data baris demi baris ke JTable agar fungsi READ bernilai penuh di UI
+            halamanUtama.getTableModel().addRow(new Object[]{
+                eq.getId(), eq.getNamaPreset(), eq.getHz115(), eq.getHz250(), eq.getHz450(), eq.getHz13k()
+            });
         }
         
         isUpdatingUI = false;
 
-        // Otomatis pilih item teratas jika ada datanya
         if (halamanUtama.getComboPreset().getItemCount() > 0) {
             halamanUtama.getComboPreset().setSelectedIndex(0);
         }
     }
 
-    // 2. FUNGSI UNTUK TOMBOL ADD / SAVE
+    // 2. FUNGSI TOMBOL ADD / SAVE
     public void insertPreset() {
         try {
             String nama = halamanUtama.getTxtPresetName().getText();
@@ -73,26 +76,23 @@ public class ControllerAudioPreset {
             int val13k = halamanUtama.getSlider13k().getValue();
 
             Equalizer eq = new Equalizer(0, nama, val115, val250, val450, val13k);
-            
-            // PERBAIKAN: Ambil tipe perangkat dari combobox yang baru kita buat
             String tipePerangkat = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
             
-            // Simpan sesuai dengan tipe yang dipilih (bukan di-hardcode "IEM" lagi)
             daoAudio.insert(eq, tipePerangkat);
 
             JOptionPane.showMessageDialog(null, "Preset Baru Berhasil Ditambahkan!");
-            showAllPreset(); // Refresh combobox
+            showAllPreset(); 
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
         }
     }
 
-    // 3. FUNGSI UNTUK TOMBOL UPDATE
+    // 3. FUNGSI TOMBOL UPDATE
     public void updatePreset() {
         try {
             if (activePresetId == -1) {
-                JOptionPane.showMessageDialog(null, "Pilih preset dari dropdown dulu buat diupdate!");
+                JOptionPane.showMessageDialog(null, "Pilih preset dari dropdown/tabel dulu buat diupdate!");
                 return;
             }
 
@@ -113,10 +113,10 @@ public class ControllerAudioPreset {
         }
     }
 
-    // 4. FUNGSI UNTUK TOMBOL DELETE
+    // 4. FUNGSI TOMBOL DELETE
     public void deletePreset() {
         if (activePresetId == -1) {
-            JOptionPane.showMessageDialog(null, "Pilih preset dari dropdown dulu buat dihapus!");
+            JOptionPane.showMessageDialog(null, "Pilih preset dari dropdown/tabel dulu buat dihapus!");
             return;
         }
 
@@ -131,7 +131,7 @@ public class ControllerAudioPreset {
         }
     }
 
-    // 5. FUNGSI UNTUK TOMBOL CLEAR (Reset input)
+    // 5. FUNGSI TOMBOL CLEAR (Reset total text input dan slider)
     public void clearForm() {
         activePresetId = -1;
         halamanUtama.getTxtPresetName().setText("");
@@ -139,10 +139,11 @@ public class ControllerAudioPreset {
         halamanUtama.getSlider250().setValue(0);
         halamanUtama.getSlider450().setValue(0);
         halamanUtama.getSlider13k().setValue(0);
-        bassGain = 1.0f; // Reset gain DSP
+        halamanUtama.getTabelPreset().clearSelection(); // Hilangkan seleksi warna biru di tabel
+        bassGain = 1.0f; 
     }
 
-    // 6. FUNGSI UNTUK MENGISI FORM SAAT COMBOBOX DIPILIH
+    // 6. FUNGSI UNTUK MENGISI FIELD FORM SAAT COMBOBOX DIPILIH
     public void isiFieldDariComboBox() {
         if (isUpdatingUI) return;
 
@@ -152,9 +153,8 @@ public class ControllerAudioPreset {
             
             for (Equalizer eq : daftarPreset) {
                 if (eq.getNamaPreset().equals(selectedNama)) {
-                    activePresetId = eq.getId(); // Simpan ID untuk update/delete
+                    activePresetId = eq.getId(); 
                     
-                    // Masukkan datanya ke komponen View
                     halamanUtama.getTxtPresetName().setText(eq.getNamaPreset());
                     halamanUtama.getSlider115().setValue((int) eq.getHz115());
                     halamanUtama.getSlider250().setValue((int) eq.getHz250());
@@ -168,7 +168,6 @@ public class ControllerAudioPreset {
         }
     }
 
-    // 7. FUNGSI UNTUK MEMILIH FILE AUDIO
     public void pilihFileAudio() {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Audio Files (WAV & MP3)", "wav", "mp3");
@@ -182,7 +181,6 @@ public class ControllerAudioPreset {
         }
     }
 
-    // 8. FUNGSI UNTUK KALKULASI DSP SAAT SLIDER DIGESER
     public void updateBassGain(float sliderValue) {
         if (sliderValue >= 0) {
             bassGain = 1.0f + (sliderValue / 10.0f); 
@@ -191,12 +189,11 @@ public class ControllerAudioPreset {
         }
     }
 
-
-    // Fungsi ini berfungsi menyambungkan tombol View dengan fungsi-fungsi publik di atas
     private void initListeners() {
         halamanUtama.getBtnSave().addActionListener(e -> insertPreset());
         halamanUtama.getBtnUpdate().addActionListener(e -> updatePreset());
         halamanUtama.getBtnDelete().addActionListener(e -> deletePreset());
+        halamanUtama.getBtnClear().addActionListener(e -> clearForm()); // Listener tombol clear baru
         halamanUtama.getComboPreset().addActionListener(e -> isiFieldDariComboBox());
         halamanUtama.getBtnChooseFile().addActionListener(e -> pilihFileAudio());
         
@@ -206,13 +203,35 @@ public class ControllerAudioPreset {
         halamanUtama.getSlider115().addChangeListener(e -> {
             if (!isUpdatingUI) updateBassGain(halamanUtama.getSlider115().getValue());
         });
+
+        // ACTION BARU: Sinkronisasi aksi klik baris JTable agar otomatis mengisi form slider & textfield
+        halamanUtama.getTabelPreset().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int rowTerpilih = halamanUtama.getTabelPreset().getSelectedRow();
+                if (rowTerpilih != -1) {
+                    int targetId = (int) halamanUtama.getTabelPreset().getValueAt(rowTerpilih, 0);
+                    for (Equalizer eq : daftarPreset) {
+                        if (eq.getId() == targetId) {
+                            activePresetId = eq.getId();
+                            halamanUtama.getTxtPresetName().setText(eq.getNamaPreset());
+                            halamanUtama.getSlider115().setValue((int) eq.getHz115());
+                            halamanUtama.getSlider250().setValue((int) eq.getHz250());
+                            halamanUtama.getSlider450().setValue((int) eq.getHz450());
+                            halamanUtama.getSlider13k().setValue((int) eq.getHz13k());
+                            updateBassGain((int) eq.getHz115());
+                            break;
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void stopAudio() {
         isPlaying = false;
     }
 
-  public void playAudio() {
+    public void playAudio() {
         if (isPlaying) return;
         if (currentAudioFilePath == null) {
             JOptionPane.showMessageDialog(halamanUtama, "Pilih file audio dulu cuy!", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -232,28 +251,29 @@ public class ControllerAudioPreset {
             halamanUtama.getSlider13k().getValue()
         );
 
-        PerangkatAudio perangkatAktif; // Variabel Parent (Abstract)
+        // =========================================================================
+        // IMPLEMENTASI PILAR POLYMORPHISM (Dynamic Dispatch / Runtime Polymorphism)
+        // Objek bertipe Kelas Parent (PerangkatAudio), namun di-instansiasi secara
+        // dinamis pada runtime menggunakan Kelas Anak (IEM atau WirelessTWS)
+        // =========================================================================
+        PerangkatAudio perangkatAktif; 
 
-        // Instansiasi objek Child berdasarkan pilihan UI
         if (tipeAktif.equals("IEM")) {
             perangkatAktif = new IEM("Moondrop", "Dynamic Driver", eqAktif);
         } else {
             perangkatAktif = new WirelessTWS("Sony", "LDAC", eqAktif);
         }
 
-        // Panggil method overriding (Outputnya akan muncul di Terminal/Console IDE)
         System.out.println("-------------------------------------------------");
+        // Metode ini akan dipanggil secara polimorfis sesuai objek aslinya
         perangkatAktif.applyEqualizer(eqAktif);
         perangkatAktif.playAudio(currentAudioFilePath);
         System.out.println("-------------------------------------------------");
-        // =========================================================================
 
         audioThread = new Thread(() -> {
             try {
                 AudioInputStream in = AudioSystem.getAudioInputStream(audioFile);
                 AudioFormat baseFormat = in.getFormat();
-                
-                // ... (SISA KODE KE BAWAHNYA TETAP SAMA SEPERTI SEBELUMNYA) ...
                 
                 AudioFormat decodedFormat = new AudioFormat(
                         AudioFormat.Encoding.PCM_SIGNED,
