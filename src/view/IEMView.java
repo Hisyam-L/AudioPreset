@@ -8,25 +8,26 @@ public class IEMView extends JFrame {
     private JTextField txtPresetName;
     private JSlider slider115, slider250, slider450, slider13k;
     private JButton btnSave, btnUpdate, btnDelete, btnPlay, btnStop, btnChooseFile;
-    private JLabel lblCurrentFile; // Label untuk menampilkan nama file
+    private JLabel lblCurrentFile; 
+    
+    // TAMBAHAN 1: Deklarasi ComboBox untuk Tipe Perangkat
+    private JComboBox<String> comboTipePerangkat; 
 
     public IEMView() {
-        setTitle("Java MVC Audio Equalizer - IEM Edition");
-        setSize(550, 450); // Sedikit diperbesar agar muat label file
+        setTitle("Java MVC Audio Equalizer - OOP Edition");
+        setSize(650, 450); // Diperlebar sedikit agar muat form baru
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
         // --- Panel Atas (File Chooser, Pemutar & Preset) ---
-        JPanel topContainer = new JPanel(new GridLayout(2, 1)); // Membagi atas jadi 2 baris
+        JPanel topContainer = new JPanel(new GridLayout(2, 1));
         
-        // Baris 1: Pilih File
         JPanel filePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         btnChooseFile = new JButton("Pilih File .wav");
         lblCurrentFile = new JLabel("File: Belum dipilih");
         filePanel.add(btnChooseFile);
         filePanel.add(lblCurrentFile);
 
-        // Baris 2: Play/Stop & Preset
         JPanel playPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         btnPlay = new JButton("Play");
         btnStop = new JButton("Stop");
@@ -56,12 +57,18 @@ public class IEMView extends JFrame {
         // --- Panel Bawah (CRUD Controls) ---
         JPanel bottomPanel = new JPanel(new FlowLayout());
         txtPresetName = new JTextField(10);
+        
+        // TAMBAHAN 2: Inisialisasi ComboBox Tipe Perangkat
+        comboTipePerangkat = new JComboBox<>(new String[]{"IEM", "Wireless TWS"});
+        
         btnSave = new JButton("Save Preset");
         btnUpdate = new JButton("Update");
         btnDelete = new JButton("Delete");
         
         bottomPanel.add(new JLabel("Nama:"));
         bottomPanel.add(txtPresetName);
+        bottomPanel.add(new JLabel("Tipe:")); // Label Tipe Perangkat
+        bottomPanel.add(comboTipePerangkat);  // ComboBox Tipe Perangkat masuk ke panel
         bottomPanel.add(btnSave);
         bottomPanel.add(btnUpdate);
         bottomPanel.add(btnDelete);
@@ -83,11 +90,8 @@ public class IEMView extends JFrame {
         return panel;
     }
 
-    // Tambahan Getter untuk tombol file dan label file
     public JButton getBtnChooseFile() { return btnChooseFile; }
     public JLabel getLblCurrentFile() { return lblCurrentFile; }
-
-    // Getters yang sudah ada
     public JSlider getSlider115() { return slider115; }
     public JSlider getSlider250() { return slider250; }
     public JSlider getSlider450() { return slider450; }
@@ -99,4 +103,7 @@ public class IEMView extends JFrame {
     public JButton getBtnDelete() { return btnDelete; }
     public JButton getBtnPlay() { return btnPlay; }
     public JButton getBtnStop() { return btnStop; }
+    
+    // TAMBAHAN 3: Getter untuk ComboBox Tipe Perangkat
+    public JComboBox<String> getComboTipePerangkat() { return comboTipePerangkat; }
 }

@@ -11,7 +11,7 @@ import java.sql.SQLException;
 public class connector {
     private static final String URL = "jdbc:mysql://localhost:3306/db_audio_pbo";
     private static final String USER = "root";
-    private static final String PASS = ""; 
+    private static final String PASS = "admin123"; 
 
     // Method statis biar gampang dipanggil tanpa harus bikin object (instansiasi) berkali-kali
     public static Connection getConnection() throws SQLException {

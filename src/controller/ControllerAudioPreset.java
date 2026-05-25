@@ -1,9 +1,11 @@
 package controller;
 
-import model.connector;
 import model.dao.InterfaceDAOAudio;
 import model.dao.PerangkatAudioDAOImpl;
 import model.entity.Equalizer;
+import model.entity.PerangkatAudio;
+import model.entity.IEM;
+import model.entity.WirelessTWS;
 import view.IEMView;
 
 import javax.sound.sampled.*;
@@ -34,6 +36,7 @@ public class ControllerAudioPreset {
         this.halamanUtama = halamanUtama;
         this.daoAudio = new PerangkatAudioDAOImpl();
         initListeners(); // Memasang tombol ke fungsi-fungsi di bawah
+        showAllPreset();
     }
 
     // 1. FUNGSI UNTUK MENAMPILKAN DATA KE COMBOBOX (Menggantikan tabel)
@@ -70,7 +73,12 @@ public class ControllerAudioPreset {
             int val13k = halamanUtama.getSlider13k().getValue();
 
             Equalizer eq = new Equalizer(0, nama, val115, val250, val450, val13k);
-            daoAudio.insert(eq, "IEM");
+            
+            // PERBAIKAN: Ambil tipe perangkat dari combobox yang baru kita buat
+            String tipePerangkat = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
+            
+            // Simpan sesuai dengan tipe yang dipilih (bukan di-hardcode "IEM" lagi)
+            daoAudio.insert(eq, tipePerangkat);
 
             JOptionPane.showMessageDialog(null, "Preset Baru Berhasil Ditambahkan!");
             showAllPreset(); // Refresh combobox
@@ -183,9 +191,6 @@ public class ControllerAudioPreset {
         }
     }
 
-    // =========================================================================
-    // BAGIAN EVENT BINDING & AUDIO ENGINE (TIDAK ADA DI TUGAS KANDIDAT)
-    // =========================================================================
 
     // Fungsi ini berfungsi menyambungkan tombol View dengan fungsi-fungsi publik di atas
     private void initListeners() {
@@ -207,7 +212,7 @@ public class ControllerAudioPreset {
         isPlaying = false;
     }
 
-    public void playAudio() {
+  public void playAudio() {
         if (isPlaying) return;
         if (currentAudioFilePath == null) {
             JOptionPane.showMessageDialog(halamanUtama, "Pilih file audio dulu cuy!", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -217,11 +222,39 @@ public class ControllerAudioPreset {
         File audioFile = new File(currentAudioFilePath);
         if (!audioFile.exists()) return;
 
+        String tipeAktif = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
+        
+        Equalizer eqAktif = new Equalizer(activePresetId, 
+            halamanUtama.getTxtPresetName().getText(),
+            halamanUtama.getSlider115().getValue(),
+            halamanUtama.getSlider250().getValue(),
+            halamanUtama.getSlider450().getValue(),
+            halamanUtama.getSlider13k().getValue()
+        );
+
+        PerangkatAudio perangkatAktif; // Variabel Parent (Abstract)
+
+        // Instansiasi objek Child berdasarkan pilihan UI
+        if (tipeAktif.equals("IEM")) {
+            perangkatAktif = new IEM("Moondrop", "Dynamic Driver", eqAktif);
+        } else {
+            perangkatAktif = new WirelessTWS("Sony", "LDAC", eqAktif);
+        }
+
+        // Panggil method overriding (Outputnya akan muncul di Terminal/Console IDE)
+        System.out.println("-------------------------------------------------");
+        perangkatAktif.applyEqualizer(eqAktif);
+        perangkatAktif.playAudio(currentAudioFilePath);
+        System.out.println("-------------------------------------------------");
+        // =========================================================================
+
         audioThread = new Thread(() -> {
             try {
                 AudioInputStream in = AudioSystem.getAudioInputStream(audioFile);
                 AudioFormat baseFormat = in.getFormat();
-
+                
+                // ... (SISA KODE KE BAWAHNYA TETAP SAMA SEPERTI SEBELUMNYA) ...
+                
                 AudioFormat decodedFormat = new AudioFormat(
                         AudioFormat.Encoding.PCM_SIGNED,
                         baseFormat.getSampleRate(), 16, 
