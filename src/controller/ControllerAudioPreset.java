@@ -263,7 +263,8 @@ public class ControllerAudioPreset {
 
         System.out.println("-------------------------------------------------");
         perangkatAktif.applyEqualizer(eqAktif);
-        perangkatAktif.playAudio(currentAudioFilePath);
+        String infoPesan = perangkatAktif.playAudio(currentAudioFilePath);
+        JOptionPane.showMessageDialog(halamanUtama, infoPesan, "Playback Info", JOptionPane.INFORMATION_MESSAGE);
         System.out.println("-------------------------------------------------");
 
         audioThread = new Thread(() -> {

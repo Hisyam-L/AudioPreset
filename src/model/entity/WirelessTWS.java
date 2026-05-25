@@ -11,13 +11,11 @@ public class WirelessTWS extends PerangkatAudio {
     }
 
     @Override
-    public void playAudio(String filePath) {
+    public String playAudio(String filePath) {
         // Menggunakan getMerk() karena variabel di parent sudah di-enkapsulasi menjadi private
         String pesan = "Streaming via TWS " + getMerk() + " (Codec: " + bluetoothCodec + ")...";
         System.out.println(pesan);
-        
-        // AGAR TERLIHAT DI UI: Munculkan pesan pop-up informasi perangkat di GUI
-        JOptionPane.showMessageDialog(null, pesan, "Playback Info (Wireless TWS)", JOptionPane.INFORMATION_MESSAGE);
+        return pesan;
     }
 
     @Override

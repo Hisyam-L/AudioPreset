@@ -17,7 +17,7 @@ public abstract class PerangkatAudio {
     }
 
     // Abstract methods untuk di-override child class
-    public abstract void playAudio(String filePath);
+    public abstract String playAudio(String filePath);
 
     public abstract void applyEqualizer(Equalizer eq);
 
