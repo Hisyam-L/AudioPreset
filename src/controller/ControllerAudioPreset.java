@@ -37,36 +37,36 @@ public class ControllerAudioPreset {
         showAllPreset();
     }
 
-    // 1. FUNGSI READ: Mengisi data ComboBox DAN JTable visualisasi GUI secara bersamaan
     public void showAllPreset() {
         isUpdatingUI = true;
         halamanUtama.getComboPreset().removeAllItems();
-        halamanUtama.getTableModel().setRowCount(0); // Bersihkan sisa tabel lama
+        halamanUtama.getTableModel().setRowCount(0); 
         
         daftarPreset = daoAudio.getAll();
         for (Equalizer eq : daftarPreset) {
             halamanUtama.getComboPreset().addItem(eq.getNamaPreset());
             
-            // Masukkan data baris demi baris ke JTable agar fungsi READ bernilai penuh di UI
+            // Masukkan data baris ke tabel termasuk tipe perangkat dan detail (driver/codec)
             halamanUtama.getTableModel().addRow(new Object[]{
-                eq.getId(), eq.getNamaPreset(), eq.getHz115(), eq.getHz250(), eq.getHz450(), eq.getHz13k()
+                eq.getId(), eq.getNamaPreset(), eq.getHz115(), eq.getHz250(), eq.getHz450(), eq.getHz13k(),
+                eq.getTipePerangkat(), eq.getDetailPerangkat()
             });
         }
         
         isUpdatingUI = false;
-
         if (halamanUtama.getComboPreset().getItemCount() > 0) {
             halamanUtama.getComboPreset().setSelectedIndex(0);
         }
     }
 
-    // 2. FUNGSI TOMBOL ADD / SAVE
     public void insertPreset() {
         try {
             String nama = halamanUtama.getTxtPresetName().getText();
+            String tipe = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
+            String detail = halamanUtama.getTxtDetailPerangkat().getText();
             
-            if (nama.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Nama preset tidak boleh kosong!");
+            if (nama.trim().isEmpty() || detail.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nama preset dan Detail (Driver/Codec) tidak boleh kosong!");
                 return;
             }
 
@@ -75,10 +75,9 @@ public class ControllerAudioPreset {
             int val450 = halamanUtama.getSlider450().getValue();
             int val13k = halamanUtama.getSlider13k().getValue();
 
-            Equalizer eq = new Equalizer(0, nama, val115, val250, val450, val13k);
-            String tipePerangkat = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
-            
-            daoAudio.insert(eq, tipePerangkat);
+            // Masukkan variabel baru ke dalam objek Equalizer
+            Equalizer eq = new Equalizer(0, nama, val115, val250, val450, val13k, tipe, detail);
+            daoAudio.insert(eq);
 
             JOptionPane.showMessageDialog(null, "Preset Baru Berhasil Ditambahkan!");
             showAllPreset(); 
@@ -88,7 +87,6 @@ public class ControllerAudioPreset {
         }
     }
 
-    // 3. FUNGSI TOMBOL UPDATE
     public void updatePreset() {
         try {
             if (activePresetId == -1) {
@@ -97,12 +95,15 @@ public class ControllerAudioPreset {
             }
 
             String nama = halamanUtama.getTxtPresetName().getText();
+            String tipe = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
+            String detail = halamanUtama.getTxtDetailPerangkat().getText();
+
             int val115 = halamanUtama.getSlider115().getValue();
             int val250 = halamanUtama.getSlider250().getValue();
             int val450 = halamanUtama.getSlider450().getValue();
             int val13k = halamanUtama.getSlider13k().getValue();
 
-            Equalizer eq = new Equalizer(activePresetId, nama, val115, val250, val450, val13k);
+            Equalizer eq = new Equalizer(activePresetId, nama, val115, val250, val450, val13k, tipe, detail);
             daoAudio.update(eq);
 
             JOptionPane.showMessageDialog(null, "Preset Berhasil Diupdate!");
@@ -113,7 +114,6 @@ public class ControllerAudioPreset {
         }
     }
 
-    // 4. FUNGSI TOMBOL DELETE
     public void deletePreset() {
         if (activePresetId == -1) {
             JOptionPane.showMessageDialog(null, "Pilih preset dari dropdown/tabel dulu buat dihapus!");
@@ -123,27 +123,24 @@ public class ControllerAudioPreset {
         int konfirmasi = JOptionPane.showConfirmDialog(null, "Yakin mau hapus preset ini?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
         if (konfirmasi == JOptionPane.YES_OPTION) {
             daoAudio.delete(activePresetId);
-            activePresetId = -1;
-            
-            JOptionPane.showMessageDialog(null, "Preset Berhasil Dihapus!");
             clearForm();
             showAllPreset();
+            JOptionPane.showMessageDialog(null, "Preset Berhasil Dihapus!");
         }
     }
 
-    // 5. FUNGSI TOMBOL CLEAR (Reset total text input dan slider)
     public void clearForm() {
         activePresetId = -1;
         halamanUtama.getTxtPresetName().setText("");
+        halamanUtama.getTxtDetailPerangkat().setText("");
         halamanUtama.getSlider115().setValue(0);
         halamanUtama.getSlider250().setValue(0);
         halamanUtama.getSlider450().setValue(0);
         halamanUtama.getSlider13k().setValue(0);
-        halamanUtama.getTabelPreset().clearSelection(); // Hilangkan seleksi warna biru di tabel
+        halamanUtama.getTabelPreset().clearSelection(); 
         bassGain = 1.0f; 
     }
 
-    // 6. FUNGSI UNTUK MENGISI FIELD FORM SAAT COMBOBOX DIPILIH
     public void isiFieldDariComboBox() {
         if (isUpdatingUI) return;
 
@@ -153,19 +150,28 @@ public class ControllerAudioPreset {
             
             for (Equalizer eq : daftarPreset) {
                 if (eq.getNamaPreset().equals(selectedNama)) {
-                    activePresetId = eq.getId(); 
-                    
-                    halamanUtama.getTxtPresetName().setText(eq.getNamaPreset());
-                    halamanUtama.getSlider115().setValue((int) eq.getHz115());
-                    halamanUtama.getSlider250().setValue((int) eq.getHz250());
-                    halamanUtama.getSlider450().setValue((int) eq.getHz450());
-                    halamanUtama.getSlider13k().setValue((int) eq.getHz13k());
-                    
-                    updateBassGain((int) eq.getHz115());
+                    loadDataKeForm(eq);
                     break;
                 }
             }
         }
+    }
+
+    private void loadDataKeForm(Equalizer eq) {
+        activePresetId = eq.getId(); 
+        
+        halamanUtama.getTxtPresetName().setText(eq.getNamaPreset());
+        halamanUtama.getSlider115().setValue((int) eq.getHz115());
+        halamanUtama.getSlider250().setValue((int) eq.getHz250());
+        halamanUtama.getSlider450().setValue((int) eq.getHz450());
+        halamanUtama.getSlider13k().setValue((int) eq.getHz13k());
+        
+        if (eq.getTipePerangkat() != null) {
+            halamanUtama.getComboTipePerangkat().setSelectedItem(eq.getTipePerangkat());
+        }
+        halamanUtama.getTxtDetailPerangkat().setText(eq.getDetailPerangkat());
+
+        updateBassGain((int) eq.getHz115());
     }
 
     public void pilihFileAudio() {
@@ -193,7 +199,7 @@ public class ControllerAudioPreset {
         halamanUtama.getBtnSave().addActionListener(e -> insertPreset());
         halamanUtama.getBtnUpdate().addActionListener(e -> updatePreset());
         halamanUtama.getBtnDelete().addActionListener(e -> deletePreset());
-        halamanUtama.getBtnClear().addActionListener(e -> clearForm()); // Listener tombol clear baru
+        halamanUtama.getBtnClear().addActionListener(e -> clearForm()); 
         halamanUtama.getComboPreset().addActionListener(e -> isiFieldDariComboBox());
         halamanUtama.getBtnChooseFile().addActionListener(e -> pilihFileAudio());
         
@@ -204,7 +210,6 @@ public class ControllerAudioPreset {
             if (!isUpdatingUI) updateBassGain(halamanUtama.getSlider115().getValue());
         });
 
-        // ACTION BARU: Sinkronisasi aksi klik baris JTable agar otomatis mengisi form slider & textfield
         halamanUtama.getTabelPreset().getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int rowTerpilih = halamanUtama.getTabelPreset().getSelectedRow();
@@ -212,13 +217,7 @@ public class ControllerAudioPreset {
                     int targetId = (int) halamanUtama.getTabelPreset().getValueAt(rowTerpilih, 0);
                     for (Equalizer eq : daftarPreset) {
                         if (eq.getId() == targetId) {
-                            activePresetId = eq.getId();
-                            halamanUtama.getTxtPresetName().setText(eq.getNamaPreset());
-                            halamanUtama.getSlider115().setValue((int) eq.getHz115());
-                            halamanUtama.getSlider250().setValue((int) eq.getHz250());
-                            halamanUtama.getSlider450().setValue((int) eq.getHz450());
-                            halamanUtama.getSlider13k().setValue((int) eq.getHz13k());
-                            updateBassGain((int) eq.getHz115());
+                            loadDataKeForm(eq);
                             break;
                         }
                     }
@@ -242,30 +241,27 @@ public class ControllerAudioPreset {
         if (!audioFile.exists()) return;
 
         String tipeAktif = halamanUtama.getComboTipePerangkat().getSelectedItem().toString();
+        String detailAktif = halamanUtama.getTxtDetailPerangkat().getText();
         
         Equalizer eqAktif = new Equalizer(activePresetId, 
             halamanUtama.getTxtPresetName().getText(),
             halamanUtama.getSlider115().getValue(),
             halamanUtama.getSlider250().getValue(),
             halamanUtama.getSlider450().getValue(),
-            halamanUtama.getSlider13k().getValue()
+            halamanUtama.getSlider13k().getValue(),
+            tipeAktif, detailAktif
         );
 
-        // =========================================================================
-        // IMPLEMENTASI PILAR POLYMORPHISM (Dynamic Dispatch / Runtime Polymorphism)
-        // Objek bertipe Kelas Parent (PerangkatAudio), namun di-instansiasi secara
-        // dinamis pada runtime menggunakan Kelas Anak (IEM atau WirelessTWS)
-        // =========================================================================
         PerangkatAudio perangkatAktif; 
 
+        // SEKARANG MENGGUNAKAN INPUT ASLI DARI DATABASE & GUI
         if (tipeAktif.equals("IEM")) {
-            perangkatAktif = new IEM("Moondrop", "Dynamic Driver", eqAktif);
+            perangkatAktif = new IEM("Moondrop", detailAktif, eqAktif);
         } else {
-            perangkatAktif = new WirelessTWS("Sony", "LDAC", eqAktif);
+            perangkatAktif = new WirelessTWS("Sony", detailAktif, eqAktif);
         }
 
         System.out.println("-------------------------------------------------");
-        // Metode ini akan dipanggil secara polimorfis sesuai objek aslinya
         perangkatAktif.applyEqualizer(eqAktif);
         perangkatAktif.playAudio(currentAudioFilePath);
         System.out.println("-------------------------------------------------");
